@@ -4,6 +4,8 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -34,6 +36,14 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.ResultMatcher;
+
+
+/*
+Referenced:
+https://github.com/json-path/JsonPath
+https://stackoverflow.com/questions/33659684/assertion-error-no-value-for-json-path-in-junit-test
+ */
 
 /**
  * Implements testing of the CarController class.
@@ -42,7 +52,7 @@ import org.springframework.test.web.servlet.MockMvc;
 @SpringBootTest
 @AutoConfigureMockMvc
 @AutoConfigureJsonTesters
-@Ignore public class CarControllerTest {
+public class CarControllerTest {
 
     @Autowired
     private MockMvc mvc;
@@ -98,6 +108,15 @@ import org.springframework.test.web.servlet.MockMvc;
          *   below (the vehicle will be the first in the list).
          */
 
+        // String result = mvc.perform(get(new URI("/cars/"))).andReturn().getResponse().getContentAsString();
+
+        mvc.perform(get(new URI("/cars/"))
+                .contentType(MediaType.APPLICATION_JSON_UTF8)
+                .accept(MediaType.APPLICATION_JSON_UTF8))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$._embedded.carList[0].id").value(1));
+
+        verify(carService, times(1)).list();
     }
 
     /**
@@ -110,6 +129,16 @@ import org.springframework.test.web.servlet.MockMvc;
          * TODO: Add a test to check that the `get` method works by calling
          *   a vehicle by ID. This should utilize the car from `getCar()` below.
          */
+
+        // String result = mvc.perform(get(new URI("/cars/1"))).andReturn().getResponse().getContentAsString();
+
+        mvc.perform(get(new URI("/cars/1"))
+                .contentType(MediaType.APPLICATION_JSON_UTF8)
+                .accept(MediaType.APPLICATION_JSON_UTF8))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1));
+
+        verify(carService, times(1)).findById(1L);
     }
 
     /**
@@ -123,6 +152,13 @@ import org.springframework.test.web.servlet.MockMvc;
          *   when the `delete` method is called from the Car Controller. This
          *   should utilize the car from `getCar()` below.
          */
+
+        mvc.perform(delete(new URI("/cars/1"))
+                        .contentType(MediaType.APPLICATION_JSON_UTF8)
+                        .accept(MediaType.APPLICATION_JSON_UTF8))
+                .andExpect(status().isOk());
+
+        verify(carService, times(1)).delete(1L);
     }
 
     /**
